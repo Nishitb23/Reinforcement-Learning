@@ -12,7 +12,7 @@ class model():
         self.grid = np.ones((self.width//self.block,self.height//self.block))
         self.screen = pygame.display.set_mode((self.width,self.height))
         self.screen.fill((255,255,255))
-        self.goal = (self.grid.shape[0],self.grid.shape[1])
+        # self.goal = (self.grid.shape[0],self.grid.shape[1])
         
         pygame.display.set_caption(title)
 
@@ -30,6 +30,20 @@ class model():
 
         #placing agent on grid
         self.grid[0][0] = 6
+
+        #save the enviroment
+        np.save('env',self.grid)
+    
+    def __init__(self,grid,title="sample game") -> None:
+        
+        self.width = 1000
+        self.height = 780
+        self.block = 20
+        self.grid = np.ones((self.width//self.block,self.height//self.block))
+        self.grid = grid
+        self.screen = pygame.display.set_mode((self.width,self.height))
+        self.screen.fill((255,255,255))
+        pygame.display.set_caption(title)
         
     def get_wall(self,grid):
 
