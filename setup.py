@@ -1,5 +1,8 @@
 from env.Model import model
+import numpy as np
 
-model = model(title="Maze")
+grid = np.load('env.npy')
+
+model = model(grid,title="Maze")
 
 model.start()
