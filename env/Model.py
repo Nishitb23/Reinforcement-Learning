@@ -98,22 +98,23 @@ class model():
                 (y+1)*self.block))
         
 
-    def start(self) -> None:
-        pygame.init()
+    def show(self) -> None:
+ 
         clock = pygame.time.Clock()
         stop = False
-        while(stop != True):
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-        	        stop = True
-                if event.type == pygame.MOUSEBUTTONUP:
-        	        stop = True
-            self.draw_grid()
-            pygame.display.update()
-            clock = pygame.time.Clock()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                stop = True
+            if event.type == pygame.MOUSEBUTTONUP:
+                stop = True
+        self.draw_grid()
+        pygame.display.update()
+        clock.tick(7)
+        return stop
 
-    def get_reward(self,next_pos)->int:
+    def get_reward(self)->int:
         
+        next_pos = self.agent_pos
         if(self.grid[next_pos[0]][next_pos[1]] == 3):
             return -100
         elif(self.grid[next_pos[0]][next_pos[1]] == 4):
@@ -123,4 +124,39 @@ class model():
         else:
             return 0
 
-    
+    def performe_action(self,action="down"):
+
+        if action.lower()=="right":
+            if (self.agent_pos[0]+1)==self.width//self.block:
+                return self.agent_pos
+            else:
+                self.grid[self.agent_pos[0]][self.agent_pos[1]] = 1
+                self.agent_pos = (self.agent_pos[0]+1,self.agent_pos[1])
+                self.grid[self.agent_pos[0]][self.agent_pos[1]] = 6
+                
+        elif action.lower()=="left":
+            if self.agent_pos[0]==0:
+                return self.agent_pos
+            else:
+                self.grid[self.agent_pos[0]][self.agent_pos[1]] = 1
+                self.agent_pos = (self.agent_pos[0]-1,self.agent_pos[1])
+                self.grid[self.agent_pos[0]][self.agent_pos[1]] = 6
+                return self.agent_pos
+        elif action.lower()=="up":
+            if self.agent_pos[1]==0:
+                return self.agent_pos
+            else:
+                self.grid[self.agent_pos[0]][self.agent_pos[1]] = 1
+                self.agent_pos = (self.agent_pos[0],self.agent_pos[1]-1)
+                self.grid[self.agent_pos[0]][self.agent_pos[1]] = 6
+                return self.agent_pos
+        elif action.lower()=="down":
+            if self.agent_pos[1]+1==self.height//self.block:
+                return self.agent_pos
+            else:
+                self.grid[self.agent_pos[0]][self.agent_pos[1]] = 1
+                self.agent_pos = (self.agent_pos[0],self.agent_pos[1]+1)
+                self.grid[self.agent_pos[0]][self.agent_pos[1]] = 6
+        else:
+            print("Invalid action")
+            return self.agent_pos
