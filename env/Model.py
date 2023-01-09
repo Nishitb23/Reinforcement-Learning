@@ -4,106 +4,96 @@ import numpy as np
 
 class model():
 
-    def __init__(self,title="sample game") -> None:
+    def __init__(self,*args) -> None:
         
         self.width = 1000
         self.height = 780
         self.block = 20
-        self.grid = np.ones((self.width//self.block,self.height//self.block))
+        self.agent_pos = (0,0)
         self.screen = pygame.display.set_mode((self.width,self.height))
         self.screen.fill((255,255,255))
-        # self.goal = (self.grid.shape[0],self.grid.shape[1])
+        pygame.display.set_caption(args[0])
+
+        if len(args)==1:
+            self.grid = np.ones((self.width//self.block,self.height//self.block))
         
-        pygame.display.set_caption(title)
+            #change grid by loading wall
+            self.place_walls()
 
-        #change grid by loading wall
-        self.grid = self.get_wall(self.grid)
+            #change grid by placing restart
+            self.place_restarts()
 
-        #change grid by placing restart
-        self.grid = self.get_restart(self.grid)
+            #change grid by placing fruit
+            self.place_fruits()
 
-        #change grid by placing fruit
-        self.grid = self.get_fruit(self.grid)
+            #placing goal on grid
+            self.grid[self.grid.shape[0]-1][self.grid.shape[1]-1] = 5
 
-        #placing goal on grid
-        self.grid[self.grid.shape[0]-1][self.grid.shape[1]-1] = 5
-
-        #placing agent on grid
-        self.grid[0][0] = 6
-
-        #save the enviroment
-        np.save('env',self.grid)
-    
-    def __init__(self,grid,title="sample game") -> None:
+            #placing agent on grid
+            self.grid[0][0] = 6
+            
+            #save the enviroment
+            np.save('saved_env/env',self.grid)
+        else:
+            self.grid = args[1]
+                
         
-        self.width = 1000
-        self.height = 780
-        self.block = 20
-        self.grid = np.ones((self.width//self.block,self.height//self.block))
-        self.grid = grid
-        self.screen = pygame.display.set_mode((self.width,self.height))
-        self.screen.fill((255,255,255))
-        pygame.display.set_caption(title)
-        
-    def get_wall(self,grid):
+    def place_walls(self)->None:
 
-        total_states = grid.shape[0]*grid.shape[1]
+        total_states = self.grid.shape[0]*self.grid.shape[1]
         wall_states = int(0.1*total_states)
-        rows = 1+np.random.randint(grid.shape[0]-2,size=wall_states)
-        cols = 1+np.random.randint(grid.shape[1]-2,size=wall_states)   
+        rows = 1+np.random.randint(self.grid.shape[0]-2,size=wall_states)
+        cols = 1+np.random.randint(self.grid.shape[1]-2,size=wall_states)   
         pos = zip(rows,cols)
 
         for x,y in pos:
-            grid[x][y] = 2
+            self.grid[x][y] = 2
 
-        return grid
 
-    def get_fruit(self,grid):
+    def place_fruits(self)->None:
 
-        total_states = grid.shape[0]*grid.shape[1]
+        total_states = self.grid.shape[0]*self.grid.shape[1]
         wall_states = int(0.008*total_states)
-        rows = 1+np.random.randint(grid.shape[0]-2,size=wall_states)
-        cols = 1+np.random.randint(grid.shape[1]-2,size=wall_states)   
+        rows = 1+np.random.randint(self.grid.shape[0]-2,size=wall_states)
+        cols = 1+np.random.randint(self.grid.shape[1]-2,size=wall_states)   
         pos = zip(rows,cols)
 
         for x,y in pos:
-            grid[x][y] = 4
+            self.grid[x][y] = 4
 
-        return grid
 
-    def get_restart(self,grid):
+    def place_restarts(self)->None:
 
-        total_states = grid.shape[0]*grid.shape[1]
+        total_states = self.grid.shape[0]*self.grid.shape[1]
         restart_states = int(0.01*total_states)
-        rows = 1+np.random.randint(grid.shape[0]-2,size=restart_states)
-        cols = 1+np.random.randint(grid.shape[1]-2,size=restart_states)   
+        rows = 1+np.random.randint(self.grid.shape[0]-2,size=restart_states)
+        cols = 1+np.random.randint(self.grid.shape[1]-2,size=restart_states)   
         pos = zip(rows,cols)
 
         for x,y in pos:
-            grid[x][y] = 3
+            self.grid[x][y] = 3
 
-        return grid
 
     def draw_grid(self)->None:
         
         for x in range(self.grid.shape[0]):
             for y in range(self.grid.shape[1]):
-                if self.grid[x][y]==1:
+                if self.grid[x][y]==1: #empty
                     pygame.draw.rect(self.screen, (0,0,0), (x*self.block,y*self.block,(x+1)*self.block, 
                 (y+1)*self.block))
-                elif self.grid[x][y]==2:
+                elif self.grid[x][y]==2: #wall
                     pygame.draw.rect(self.screen, (255,255,255), (x*self.block,y*self.block,(x+1)*self.block, 
                 (y+1)*self.block))
-                elif self.grid[x][y]==3:
+                elif self.grid[x][y]==3: # restart
                     pygame.draw.rect(self.screen, (255,0,0), (x*self.block,y*self.block,(x+1)*self.block, 
                 (y+1)*self.block))
-                elif self.grid[x][y]==4:
+                elif self.grid[x][y]==4: # fruit
                     pygame.draw.rect(self.screen, (255,255,0), (x*self.block,y*self.block,(x+1)*self.block, 
                 (y+1)*self.block))
-                elif self.grid[x][y]==5:
+                elif self.grid[x][y]==5: #goal
                     pygame.draw.rect(self.screen, (0,255,0), (x*self.block,y*self.block,(x+1)*self.block, 
                 (y+1)*self.block))
-                elif self.grid[x][y]==6:
+                elif self.grid[x][y]==6: #agent
                     pygame.draw.rect(self.screen, (0,0,255), (x*self.block,y*self.block,(x+1)*self.block, 
                 (y+1)*self.block))
         
@@ -121,3 +111,16 @@ class model():
             self.draw_grid()
             pygame.display.update()
             clock = pygame.time.Clock()
+
+    def get_reward(self,next_pos)->int:
+        
+        if(self.grid[next_pos[0]][next_pos[1]] == 3):
+            return -100
+        elif(self.grid[next_pos[0]][next_pos[1]] == 4):
+            return 5
+        elif(self.grid[next_pos[0]][next_pos[1]] == 5):
+            return 100
+        else:
+            return 0
+
+    
