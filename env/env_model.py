@@ -6,12 +6,13 @@ class model():
 
     def __init__(self,*args) -> None:
         
-        self.width = 1000
+        self.width = 1540
         self.height = 780
-        self.block = 20
+        self.block = 10
         self.agent_pos = (0,0)
         self.screen = pygame.display.set_mode((self.width,self.height))
         self.screen.fill((255,255,255))
+        pygame.init()
         pygame.display.set_caption(args[0])
 
         if len(args)==1:
@@ -27,15 +28,19 @@ class model():
             self.place_fruits()
 
             #placing goal on grid
-            self.grid[self.grid.shape[0]-1][self.grid.shape[1]-1] = 5
+            self.grid[self.grid.shape[0]-1][self.grid.shape[1]-1] = 5/7
 
             #placing agent on grid
-            self.grid[0][0] = 6
+            self.grid[0][0] = 6/7
+
+            #copying intial enviroment for rollouts
+            self.initial_grid = np.copy(self.grid)
             
             #save the enviroment
             np.save('saved_env/env',self.grid)
         else:
             self.grid = args[1]
+            self.initial_grid = args[1]
                 
         
     def place_walls(self)->None:
@@ -47,7 +52,7 @@ class model():
         pos = zip(rows,cols)
 
         for x,y in pos:
-            self.grid[x][y] = 2
+            self.grid[x][y] = 2/7
 
 
     def place_fruits(self)->None:
@@ -59,7 +64,7 @@ class model():
         pos = zip(rows,cols)
 
         for x,y in pos:
-            self.grid[x][y] = 4
+            self.grid[x][y] = 4/7
 
 
     def place_restarts(self)->None:
@@ -71,7 +76,7 @@ class model():
         pos = zip(rows,cols)
 
         for x,y in pos:
-            self.grid[x][y] = 3
+            self.grid[x][y] = 3/7
 
 
     def draw_grid(self)->None:
@@ -81,19 +86,19 @@ class model():
                 if self.grid[x][y]==1: #empty
                     pygame.draw.rect(self.screen, (0,0,0), (x*self.block,y*self.block,(x+1)*self.block, 
                 (y+1)*self.block))
-                elif self.grid[x][y]==2: #wall
+                elif self.grid[x][y]==2/7: #wall
                     pygame.draw.rect(self.screen, (255,255,255), (x*self.block,y*self.block,(x+1)*self.block, 
                 (y+1)*self.block))
-                elif self.grid[x][y]==3: # restart
+                elif self.grid[x][y]==3/7: # restart
                     pygame.draw.rect(self.screen, (255,0,0), (x*self.block,y*self.block,(x+1)*self.block, 
                 (y+1)*self.block))
-                elif self.grid[x][y]==4: # fruit
+                elif self.grid[x][y]==4/7: # fruit
                     pygame.draw.rect(self.screen, (255,255,0), (x*self.block,y*self.block,(x+1)*self.block, 
                 (y+1)*self.block))
-                elif self.grid[x][y]==5: #goal
+                elif self.grid[x][y]==5/7: #goal
                     pygame.draw.rect(self.screen, (0,255,0), (x*self.block,y*self.block,(x+1)*self.block, 
                 (y+1)*self.block))
-                elif self.grid[x][y]==6: #agent
+                elif self.grid[x][y]==6/7: #agent
                     pygame.draw.rect(self.screen, (0,0,255), (x*self.block,y*self.block,(x+1)*self.block, 
                 (y+1)*self.block))
         
@@ -112,17 +117,20 @@ class model():
         clock.tick(7)
         return stop
 
-    def get_reward(self)->int:
+    def reset(self):
+        self.grid = self.initial_grid
+
+    # def get_reward(self)->int:
         
-        next_pos = self.agent_pos
-        if(self.grid[next_pos[0]][next_pos[1]] == 3):
-            return -100
-        elif(self.grid[next_pos[0]][next_pos[1]] == 4):
-            return 5
-        elif(self.grid[next_pos[0]][next_pos[1]] == 5):
-            return 100
-        else:
-            return 0
+    #     next_pos = self.agent_pos
+    #     if(self.grid[next_pos[0]][next_pos[1]] == 3):
+    #         return -100
+    #     elif(self.grid[next_pos[0]][next_pos[1]] == 4):
+    #         return 5
+    #     elif(self.grid[next_pos[0]][next_pos[1]] == 5):
+    #         return 100
+    #     else:
+    #         return 0
 
     def performe_action(self,action="down"):
 
@@ -132,7 +140,7 @@ class model():
             else:
                 self.grid[self.agent_pos[0]][self.agent_pos[1]] = 1
                 self.agent_pos = (self.agent_pos[0]+1,self.agent_pos[1])
-                self.grid[self.agent_pos[0]][self.agent_pos[1]] = 6
+                self.grid[self.agent_pos[0]][self.agent_pos[1]] = 6/7
                 
         elif action.lower()=="left":
             if self.agent_pos[0]==0:
@@ -140,7 +148,7 @@ class model():
             else:
                 self.grid[self.agent_pos[0]][self.agent_pos[1]] = 1
                 self.agent_pos = (self.agent_pos[0]-1,self.agent_pos[1])
-                self.grid[self.agent_pos[0]][self.agent_pos[1]] = 6
+                self.grid[self.agent_pos[0]][self.agent_pos[1]] = 6/7
                 return self.agent_pos
         elif action.lower()=="up":
             if self.agent_pos[1]==0:
@@ -148,15 +156,15 @@ class model():
             else:
                 self.grid[self.agent_pos[0]][self.agent_pos[1]] = 1
                 self.agent_pos = (self.agent_pos[0],self.agent_pos[1]-1)
-                self.grid[self.agent_pos[0]][self.agent_pos[1]] = 6
+                self.grid[self.agent_pos[0]][self.agent_pos[1]] = 6/7
                 return self.agent_pos
         elif action.lower()=="down":
             if self.agent_pos[1]+1==self.height//self.block:
                 return self.agent_pos
             else:
-                self.grid[self.agent_pos[0]][self.agent_pos[1]] = 1
+                self.grid[self.agent_pos[0]][self.agent_pos[1]] = 1/7
                 self.agent_pos = (self.agent_pos[0],self.agent_pos[1]+1)
-                self.grid[self.agent_pos[0]][self.agent_pos[1]] = 6
+                self.grid[self.agent_pos[0]][self.agent_pos[1]] = 6/7
         else:
             print("Invalid action")
             return self.agent_pos
