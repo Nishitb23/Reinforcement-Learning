@@ -1,6 +1,6 @@
 from random import sample
 
-class memory():
+class buffer():
     def __init__(self) -> None:
          self.states = []
          self.actions = []
